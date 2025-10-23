@@ -4,7 +4,8 @@ import axios from 'axios';
 import { Upload, FileText, CheckCircle, AlertCircle, X, Loader } from 'lucide-react';
 import './App.css';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000';
+// const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 function App() {
   const [files, setFiles] = useState([]);
