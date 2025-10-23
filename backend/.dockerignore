@@ -1,9 +1,0 @@
-# .dockerignore for backend
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-venv/
-uploads/
-credit_card_statements.db
-.env
