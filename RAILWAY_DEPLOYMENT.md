@@ -18,12 +18,12 @@ This guide will help you deploy your Credit Card Parser application on Railway w
    - Choose "Deploy from GitHub repo" (or upload your code)
 
 2. **Configure Backend Service:**
-   - Select the `backend` folder as the root directory
-   - Railway will automatically detect the Dockerfile
+   - **IMPORTANT**: Set the root directory to `backend` folder
+   - Railway will automatically detect the `backend/Dockerfile`
    - Set the following environment variables:
      ```
      MONGODB_URI=your_mongodb_connection_string
-     FRONTEND_ORIGIN=https://your-frontend-domain.railway.app
+     PORT=8000
      ```
 
 3. **Deploy:**
@@ -35,11 +35,11 @@ This guide will help you deploy your Credit Card Parser application on Railway w
 1. **Create another Railway service:**
    - In the same project, click "New Service"
    - Choose "Deploy from GitHub repo"
-   - Select the `frontend` folder as the root directory
+   - **IMPORTANT**: Set the root directory to `frontend` folder
+   - Railway will detect the `frontend/Dockerfile`
 
 2. **Configure Frontend Service:**
-   - Railway will detect the Dockerfile
-   - Set environment variables if needed:
+   - Set environment variables:
      ```
      REACT_APP_API_URL=https://your-backend-name.railway.app
      ```
@@ -47,6 +47,20 @@ This guide will help you deploy your Credit Card Parser application on Railway w
 3. **Deploy:**
    - Railway will build and deploy your frontend
    - Note the generated URL (e.g., `https://your-frontend-name.railway.app`)
+
+### 3. Alternative: Deploy from Root Directory
+
+If you want to deploy from the root directory, you need to:
+
+1. **For Backend Service:**
+   - Set root directory to project root
+   - Set build context to `backend/`
+   - Railway will use `backend/Dockerfile`
+
+2. **For Frontend Service:**
+   - Set root directory to project root  
+   - Set build context to `frontend/`
+   - Railway will use `frontend/Dockerfile`
 
 ### 3. Environment Variables
 
