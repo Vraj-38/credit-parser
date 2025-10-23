@@ -4,8 +4,10 @@ import axios from 'axios';
 import { Upload, FileText, CheckCircle, AlertCircle, X, Loader } from 'lucide-react';
 import './App.css';
 
-// const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000';
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000';
+
+// Debug: Log the API URL
+console.log('API_BASE_URL:', API_BASE_URL);
 
 function App() {
   const [files, setFiles] = useState([]);
@@ -155,10 +157,14 @@ function App() {
     setHistoryError(null);
     
     try {
+      console.log('Making request to:', `${API_BASE_URL}/statements`);
       const response = await axios.get(`${API_BASE_URL}/statements`);
+      console.log('Response:', response.data);
       setPreviouslyParsed(response.data.data);
     } catch (error) {
-      setHistoryError('Failed to load previously parsed statements');
+      console.error('Error loading statements:', error);
+      console.error('Error details:', error.response?.data);
+      setHistoryError(`Failed to load previously parsed statements: ${error.message}`);
     } finally {
       setLoadingHistory(false);
     }
