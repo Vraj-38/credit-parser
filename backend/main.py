@@ -4,7 +4,7 @@ FastAPI Backend for Credit Card Statement Parser
 
 from fastapi import FastAPI, File, UploadFile, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 import os
 import shutil
@@ -39,9 +39,14 @@ async def startup_event():
         logger.error(f"Failed to connect to MongoDB on startup: {e}")
 
 # Add CORS middleware
+frontend_origin = os.getenv("FRONTEND_ORIGIN")
+allowed_origins = ["http://localhost:3000", "http://127.0.0.1:3000"]
+if frontend_origin:
+    allowed_origins.append(frontend_origin)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=allowed_origins if allowed_origins else ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
