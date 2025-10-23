@@ -10,7 +10,7 @@ RUN apt-get update && \
 WORKDIR /app
 
 # Copy backend code
-COPY backend/ ./
+COPY . ./
 
 # Install Python dependencies
 RUN pip install --upgrade pip && \
