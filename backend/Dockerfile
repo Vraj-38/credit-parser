@@ -10,7 +10,7 @@ RUN apt-get update && \
 WORKDIR /app
 
 # Copy backend code
-COPY backend/ ./
+COPY . .
 
 # Install Python dependencies
 RUN pip install --upgrade pip && \
@@ -19,5 +19,5 @@ RUN pip install --upgrade pip && \
 # Expose FastAPI port
 EXPOSE 8000
 
-# Start script
-ENTRYPOINT ["/app/entrypoint.sh"]
+# Run application
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
