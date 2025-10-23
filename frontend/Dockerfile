@@ -6,7 +6,7 @@ WORKDIR /app
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm install
 
-COPY frontend/ ./
+COPY . ./
 RUN npm run build
 
 # Serve with nginx
