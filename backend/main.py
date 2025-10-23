@@ -38,16 +38,11 @@ async def startup_event():
     except Exception as e:
         logger.error(f"Failed to connect to MongoDB on startup: {e}")
 
-# Add CORS middleware
-frontend_origin = os.getenv("FRONTEND_ORIGIN")
-allowed_origins = ["http://localhost:3000", "http://127.0.0.1:3000"]
-if frontend_origin:
-    allowed_origins.append(frontend_origin)
-
+# Add CORS middleware - Allow all origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins if allowed_origins else ["*"],
-    allow_credentials=True,
+    allow_origins=["*"],  # Allow all origins
+    allow_credentials=False,  # Must be False when allow_origins=["*"]
     allow_methods=["*"],
     allow_headers=["*"],
 )
