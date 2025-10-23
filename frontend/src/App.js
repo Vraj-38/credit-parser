@@ -4,7 +4,9 @@ import axios from 'axios';
 import { Upload, FileText, CheckCircle, AlertCircle, X, Loader } from 'lucide-react';
 import './App.css';
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://your-vercel-app.vercel.app/api' 
+  : 'http://localhost:8000';
 
 function App() {
   const [files, setFiles] = useState([]);
@@ -95,8 +97,11 @@ function App() {
   };
 
   const exportToCSV = () => {
-    if (results.length === 0) {
-      setError('No results to export');
+    // Use previouslyParsed data instead of results
+    const dataToExport = previouslyParsed.length > 0 ? previouslyParsed : results;
+    
+    if (dataToExport.length === 0) {
+      setHistoryError('No data to export');
       return;
     }
 
@@ -108,18 +113,20 @@ function App() {
       'Last 4 Digits',
       'Credit Limit',
       'Available Credit',
-      'Statement Date'
+      'Statement Date',
+      'Parsed Date'
     ];
 
     // Create CSV rows
-    const csvRows = results.map(result => [
-      result.filename || '',
-      result.bank || '',
-      result.due_date || '',
-      result.last_4_digits || '',
-      result.credit_limit || '',
-      result.available_credit || '',
-      result.statement_date || ''
+    const csvRows = dataToExport.map(statement => [
+      statement.filename || '',
+      statement.bank || '',
+      statement.due_date || '',
+      statement.last_4_digits || '',
+      statement.credit_limit || '',
+      statement.available_credit || '',
+      statement.statement_date || '',
+      statement.parsed_at ? new Date(statement.parsed_at).toLocaleDateString() : ''
     ]);
 
     // Combine headers and rows
@@ -133,14 +140,14 @@ function App() {
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `credit_card_statements_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `saved_statements_${new Date().toISOString().split('T')[0]}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
 
-    setSuccess('CSV file downloaded successfully!');
+    setHistorySuccess('CSV file downloaded successfully!');
   };
 
   // Previously Parsed Functions

@@ -11,9 +11,13 @@ import shutil
 import tempfile
 from typing import List, Dict, Optional
 import logging
+from dotenv import load_dotenv
 from parser import CreditCardParser
-from database import DatabaseManager
+from database_mongodb import MongoDBManager
 from pydantic import BaseModel
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -26,6 +30,14 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Ensure DB connection on startup
+@app.on_event("startup")
+async def startup_event():
+    try:
+        await db_manager.connect()
+    except Exception as e:
+        logger.error(f"Failed to connect to MongoDB on startup: {e}")
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -37,7 +49,7 @@ app.add_middleware(
 
 # Initialize parser and database
 parser = CreditCardParser()
-db_manager = DatabaseManager()
+db_manager = MongoDBManager()
 
 # Create uploads directory if it doesn't exist
 UPLOAD_DIR = "uploads"
@@ -87,7 +99,7 @@ async def parse_single_statement(file: UploadFile = File(...)):
         
         # Save to database
         try:
-            statement_id = db_manager.save_statement(result)
+            statement_id = await db_manager.save_statement(result)
             result['id'] = statement_id
             logger.info(f"Statement saved to database with ID: {statement_id}")
         except Exception as e:
@@ -140,7 +152,7 @@ async def parse_multiple_statements(files: List[UploadFile] = File(...)):
                 
                 # Save to database
                 try:
-                    statement_id = db_manager.save_statement(result)
+                    statement_id = await db_manager.save_statement(result)
                     result['id'] = statement_id
                     logger.info(f"Statement saved to database with ID: {statement_id}")
                 except Exception as e:
@@ -200,7 +212,7 @@ async def get_supported_banks():
 async def get_all_statements():
     """Get all previously parsed statements"""
     try:
-        statements = db_manager.get_all_statements()
+        statements = await db_manager.get_all_statements()
         return JSONResponse(content={
             "success": True,
             "data": statements,
@@ -211,10 +223,10 @@ async def get_all_statements():
         raise HTTPException(status_code=500, detail=f"Error fetching statements: {str(e)}")
 
 @app.get("/statements/{statement_id}")
-async def get_statement(statement_id: int):
+async def get_statement(statement_id: str):
     """Get specific statement by ID"""
     try:
-        statement = db_manager.get_statement_by_id(statement_id)
+        statement = await db_manager.get_statement_by_id(statement_id)
         if not statement:
             raise HTTPException(status_code=404, detail="Statement not found")
         
@@ -229,7 +241,7 @@ async def get_statement(statement_id: int):
         raise HTTPException(status_code=500, detail=f"Error fetching statement: {str(e)}")
 
 @app.put("/statements/{statement_id}")
-async def update_statement(statement_id: int, updates: StatementUpdate):
+async def update_statement(statement_id: str, updates: StatementUpdate):
     """Update statement fields"""
     try:
         # Convert Pydantic model to dict, excluding None values
@@ -238,12 +250,12 @@ async def update_statement(statement_id: int, updates: StatementUpdate):
         if not update_dict:
             raise HTTPException(status_code=400, detail="No valid fields to update")
         
-        success = db_manager.update_statement(statement_id, update_dict)
+        success = await db_manager.update_statement(statement_id, update_dict)
         if not success:
             raise HTTPException(status_code=404, detail="Statement not found or no changes made")
         
         # Return updated statement
-        updated_statement = db_manager.get_statement_by_id(statement_id)
+        updated_statement = await db_manager.get_statement_by_id(statement_id)
         return JSONResponse(content={
             "success": True,
             "data": updated_statement,
@@ -256,10 +268,10 @@ async def update_statement(statement_id: int, updates: StatementUpdate):
         raise HTTPException(status_code=500, detail=f"Error updating statement: {str(e)}")
 
 @app.delete("/statements/{statement_id}")
-async def delete_statement(statement_id: int):
+async def delete_statement(statement_id: str):
     """Delete statement by ID"""
     try:
-        success = db_manager.delete_statement(statement_id)
+        success = await db_manager.delete_statement(statement_id)
         if not success:
             raise HTTPException(status_code=404, detail="Statement not found")
         
@@ -277,7 +289,7 @@ async def delete_statement(statement_id: int):
 async def search_statements(q: str = Query(..., description="Search query")):
     """Search statements by filename or bank"""
     try:
-        statements = db_manager.search_statements(q)
+        statements = await db_manager.search_statements(q)
         return JSONResponse(content={
             "success": True,
             "data": statements,
@@ -292,7 +304,7 @@ async def search_statements(q: str = Query(..., description="Search query")):
 async def get_statistics():
     """Get database statistics"""
     try:
-        stats = db_manager.get_statistics()
+        stats = await db_manager.get_statistics()
         return JSONResponse(content={
             "success": True,
             "data": stats
